@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strconv"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -29,7 +28,7 @@ type buntdblayer struct {
 	log    zerolog.Logger
 }
 
-func New(folder, file, ttl string,
+func New(folder, file string, ttl int,
 	debug bool) (CacheRepo, error) {
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -56,12 +55,11 @@ func New(folder, file, ttl string,
 		log.Info().Err(err).Msg("Could not open data file path")
 		return nil, err
 	}
-	ttlInt, _ := strconv.Atoi(ttl)
 	return &buntdblayer{
 		db:     db,
 		folder: folder,
 		file:   file,
-		ttl:    ttlInt,
+		ttl:    ttl,
 		log:    log,
 	}, nil
 }
