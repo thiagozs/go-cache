@@ -1,4 +1,4 @@
-# Go-Cache - simple way to keep data
+# Go Cache 
 
 Simple cache implementation **key**, **value** system.
 Core use for this projet are **BuntDB**
