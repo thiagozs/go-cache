@@ -29,30 +29,34 @@ type buntdblayer struct {
 }
 
 func New(folder, file string, ttl int,
-	debug bool) (CacheRepo, error) {
+	logDebug bool, logDisable bool) (CacheRepo, error) {
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log := zerolog.New(os.Stderr).With().Timestamp().Logger()
 
-	if debug {
-		log.Info().Bool("debug", true).Msg("[CACHE]")
+	if logDebug {
+		log.Info().Bool("debug", true).Msg("log debug")
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+
+	if logDisable {
+		zerolog.SetGlobalLevel(zerolog.Disabled)
 	}
 
 	pathFile := fmt.Sprintf("%s/%s", folder, file)
 
-	log.Info().Str("path_file", pathFile).Msg("[CACHE]")
+	log.Info().Str("path_file", pathFile).Msg("file database")
 	if !files.FileExists(pathFile) {
 		if err := files.MkdirAll(path.Dir(pathFile)); err != nil {
-			log.Info().Err(err).Msg("Fail create a directory")
+			log.Info().Err(err).Msg("fail create a directory")
 			return nil, err
 		}
 	}
 
 	db, err := buntdb.Open(pathFile)
 	if err != nil {
-		log.Info().Err(err).Msg("Could not open data file path")
+		log.Info().Err(err).Msg("could not open data file path")
 		return nil, err
 	}
 	return &buntdblayer{
