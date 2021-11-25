@@ -1,7 +1,10 @@
 # Go Cache 
 
 Simple cache implementation **key**, **value** system.
-Core use for this projet are **BuntDB**
+The cache you can choose between drivers for different storage.
+
+* [x] BuntDB 
+* [ ] Redis
 
 ## How to use the cache
 
