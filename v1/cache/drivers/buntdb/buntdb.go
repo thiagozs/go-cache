@@ -147,6 +147,11 @@ func (d *buntdblayer) WriteKeyValAsJSON(key string, val interface{}) error {
 }
 
 func (d *buntdblayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error {
+	if ttlSeconds == 0 {
+		d.log.Debug().Int("ttl_seconds", d.ttl).Msg("WriteKeyValTTL")
+		ttlSeconds = d.ttl
+	}
+
 	valueAsJSON, err := json.Marshal(val)
 	if err != nil {
 		d.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSONTTL")

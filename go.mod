@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/go-redis/redis/v7 v7.4.1
 	github.com/tidwall/btree v0.6.1 // indirect
 	github.com/tidwall/buntdb v1.2.7
 	github.com/tidwall/gjson v1.11.0 // indirect

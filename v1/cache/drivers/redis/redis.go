@@ -1,8 +1,12 @@
 package redislayer
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
+	"time"
 
+	"github.com/go-redis/redis/v7"
 	"github.com/rs/zerolog"
 	"github.com/thiagozs/go-cache/v1/cache/options"
 )
@@ -23,6 +27,7 @@ type redisblayer struct {
 	port     int
 	ttl      int
 	log      zerolog.Logger
+	rdb      *redis.Client
 }
 
 func NewRedis(opts ...options.Options) (RedisLayerRepo, error) {
@@ -51,6 +56,18 @@ func newInstance(opt *options.OptionsCfg) (RedisLayerRepo, error) {
 		zerolog.SetGlobalLevel(zerolog.Disabled)
 	}
 
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", opt.GetHost(), opt.GetPort()),
+		Password: opt.GetPassword(), // no password set
+		DB:       0,                 // use default DB
+	})
+
+	_, err := rdb.Ping().Result()
+	if err != nil {
+		log.Error().Err(err).Msg("error ping")
+		return nil, err
+	}
+
 	return &redisblayer{
 		log:      log,
 		host:     opt.GetHost(),
@@ -58,42 +75,58 @@ func newInstance(opt *options.OptionsCfg) (RedisLayerRepo, error) {
 		user:     opt.GetUser(),
 		port:     opt.GetPort(),
 		ttl:      opt.GetTTL(),
+		rdb:      rdb,
 	}, nil
 }
 
+func (r *redisblayer) Ping() (string, error) {
+	return r.rdb.Ping().Result()
+}
+
 func (d *redisblayer) GetVal(key string) (string, error) {
-	var value string
-	// TODO: implement
-	return value, nil
+	return d.rdb.Get(key).Result()
 }
 
 func (d *redisblayer) DeleteKey(key string) (string, error) {
-	var value string
-	// TODO: implement
-
-	return value, nil
+	val, err := d.rdb.Del(key).Result()
+	if err != nil {
+		d.log.Debug().Err(err).Msg("DeleteKey")
+		return "", err
+	}
+	return fmt.Sprintf("%d", val), nil
 }
 
 func (d *redisblayer) WriteKeyVal(key string, val string) error {
-	// TODO: implement
-
-	return nil
+	return d.rdb.Set(key, val, time.Duration(0)).Err()
 }
 
 func (d *redisblayer) WriteKeyValTTL(key string, val string, ttlSeconds int) error {
-	// TODO: implement
-
-	return nil
+	if ttlSeconds == 0 {
+		d.log.Debug().Int("ttl_seconds", d.ttl).Msg("WriteKeyValTTL")
+		ttlSeconds = d.ttl
+	}
+	return d.rdb.Set(key, val, time.Duration(ttlSeconds)).Err()
 }
 
 func (d *redisblayer) WriteKeyValAsJSON(key string, val interface{}) error {
-	// TODO: implement
-
-	return d.WriteKeyVal(key, string(""))
+	valueAsJSON, err := json.Marshal(val)
+	if err != nil {
+		d.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSON")
+		return err
+	}
+	return d.WriteKeyVal(key, string(valueAsJSON))
 }
 
 func (d *redisblayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error {
-	// TODO: implement
+	if ttlSeconds == 0 {
+		d.log.Debug().Int("ttl_seconds", d.ttl).Msg("WriteKeyValAsJSONTTL")
+		ttlSeconds = d.ttl
+	}
+	valueAsJSON, err := json.Marshal(val)
+	if err != nil {
+		d.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSONTTL")
+		return err
+	}
 
-	return d.WriteKeyValTTL(key, string(""), ttlSeconds)
+	return d.WriteKeyValTTL(key, string(valueAsJSON), ttlSeconds)
 }

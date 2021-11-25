@@ -5,8 +5,8 @@ Simple cache implementation **key**, **value** system.
 The cache you can choose between drivers for different storage.
 
 ### Implementation
-* [x] BuntDB 
-* [ ] Redis
+* [x] **BuntDB** 
+* [x] **Redis**
 
 ## How to use the cache
 
