@@ -32,13 +32,18 @@ type DriverPort interface {
 }
 
 func NewDriver(driver Driver, opts ...Options) (DriverPort, error) {
+	var db DriverPort
+	var err error
 	switch driver {
 	case BUNTDB:
-		return buntdblayer.NewBuntDB(opts...), nil
+		db, err = buntdblayer.NewBuntDB(opts...)
 	case REDIS:
-		return redislayer.NewRedis(opts...), nil
+		db, err = redislayer.NewRedis(opts...)
 	}
-	return &Drivers{}, fmt.Errorf("unknown driver type: %s", driver.String())
+	if err != nil {
+		return nil, err
+	}
+	return &Drivers{db: db}, fmt.Errorf("unknown driver type: %s", driver.String())
 }
 
 func (d *Drivers) WriteKeyVal(key string, val string) error {
