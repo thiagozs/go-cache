@@ -1,8 +1,6 @@
 package drivers
 
 import (
-	"fmt"
-
 	buntdblayer "github.com/thiagozs/go-cache/v1/cache/drivers/buntdb"
 	redislayer "github.com/thiagozs/go-cache/v1/cache/drivers/redis"
 	"github.com/thiagozs/go-cache/v1/cache/options"
@@ -44,7 +42,7 @@ func NewDriver(driver Driver, opts ...options.Options) (DriverPort, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Drivers{db: db}, fmt.Errorf("unknown driver type: %s", driver.String())
+	return &Drivers{db: db}, nil
 }
 
 func (d *Drivers) WriteKeyVal(key string, val string) error {
