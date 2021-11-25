@@ -3,8 +3,9 @@ package drivers
 import (
 	"fmt"
 
-	"github.com/thiagozs/go-cache/v1/cache/drivers/buntdblayer"
-	"github.com/thiagozs/go-cache/v1/cache/drivers/redislayer"
+	buntdblayer "github.com/thiagozs/go-cache/v1/cache/drivers/buntdb"
+	redislayer "github.com/thiagozs/go-cache/v1/cache/drivers/redis"
+	"github.com/thiagozs/go-cache/v1/cache/options"
 )
 
 type Driver int
@@ -31,7 +32,7 @@ type DriverPort interface {
 	GetVal(key string) (string, error)
 }
 
-func NewDriver(driver Driver, opts ...Options) (DriverPort, error) {
+func NewDriver(driver Driver, opts ...options.Options) (DriverPort, error) {
 	var db DriverPort
 	var err error
 	switch driver {

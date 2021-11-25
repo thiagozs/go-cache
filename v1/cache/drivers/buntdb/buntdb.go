@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
-	"github.com/thiagozs/go-cache/v1/cache/drivers"
+	"github.com/thiagozs/go-cache/v1/cache/options"
 	"github.com/thiagozs/go-utils/files"
 	"github.com/tidwall/buntdb"
 )
@@ -30,35 +30,33 @@ type buntdblayer struct {
 	log    zerolog.Logger
 }
 
-func NewBuntDB(opts ...drivers.Options) (BuntDBLayerRepo, error) {
-	mts := &drivers.OptionsCfg{}
+func NewBuntDB(opts ...options.Options) (BuntDBLayerRepo, error) {
+	mts := &options.OptionsCfg{}
 	for _, op := range opts {
 		err := op(mts)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return newInstance(mts.GetFolder(), mts.GetFileName(),
-		mts.GetTTL(), mts.GetLogDebug(), mts.GetLogDisable())
+	return newInstance(mts)
 }
 
-func newInstance(folder, file string, ttl int,
-	logDebug bool, logDisable bool) (BuntDBLayerRepo, error) {
+func newInstance(opt *options.OptionsCfg) (BuntDBLayerRepo, error) {
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log := zerolog.New(os.Stderr).With().Timestamp().Logger()
 
-	if logDebug {
+	if opt.GetLogDebug() {
 		log.Info().Bool("debug", true).Msg("log debug")
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 
-	if logDisable {
+	if opt.GetLogDisable() {
 		zerolog.SetGlobalLevel(zerolog.Disabled)
 	}
 
-	pathFile := fmt.Sprintf("%s/%s", folder, file)
+	pathFile := fmt.Sprintf("%s/%s", opt.GetFolder(), opt.GetFileName())
 
 	log.Info().Str("path_file", pathFile).Msg("file database")
 	if !files.FileExists(pathFile) {
@@ -75,9 +73,9 @@ func newInstance(folder, file string, ttl int,
 	}
 	return &buntdblayer{
 		db:     db,
-		folder: folder,
-		file:   file,
-		ttl:    ttl,
+		folder: opt.GetFolder(),
+		file:   opt.GetFileName(),
+		ttl:    opt.GetTTL(),
 		log:    log,
 	}, nil
 }

@@ -1,4 +1,6 @@
-package drivers
+package options
+
+import "github.com/rs/zerolog"
 
 type Options func(o *OptionsCfg) error
 
@@ -13,6 +15,7 @@ type OptionsCfg struct {
 	password   string
 	user       string
 	port       int
+	log        zerolog.Logger
 }
 
 func OptFileName(filename string) Options {
@@ -85,6 +88,13 @@ func OptPort(port int) Options {
 	}
 }
 
+func OptLogger(log zerolog.Logger) Options {
+	return func(o *OptionsCfg) error {
+		o.log = log
+		return nil
+	}
+}
+
 // ------------- getters
 
 func (o *OptionsCfg) GetFileName() string {
@@ -125,4 +135,8 @@ func (o *OptionsCfg) GetUser() string {
 
 func (o *OptionsCfg) GetPort() int {
 	return o.port
+}
+
+func (o *OptionsCfg) GetLog() zerolog.Logger {
+	return o.log
 }
