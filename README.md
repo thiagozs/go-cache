@@ -8,33 +8,24 @@ Core use for this projet are **BuntDB**
 Very simple.
 
 ```golang
-package main
+cache, err := cache.New(drivers.BUNTDB, opts...)
+if err != nil {
+	fmt.Println("Error:", err)
+	return
+}
 
-import (
-	"github.com/thiagozs/go-cache/v1/cache"
-)
+cache.WriteKeyVal("key1", "value1")
+cache.WriteKeyVal("key2", "value2")
 
-func main() {
-	println("Hello, world!")
-
-	cache, err := cache.New("./db", "db.db", 200, false)
-	if err != nil {
-		println(err)
-	}
-	if err := cache.WriteKeyVal("key", "value"); err != nil {
-		println(err)
-		return
-	}
-
-	rr, err := cache.GetVal("key")
-	if err != nil {
-		println(err)
-		return
-	}
-	println(rr)
+v1, err := cache.GetVal("key1")
+if err != nil {
+	fmt.Println("Error:", err)
+	return
 }
 
 ```
+
+A example of a cache implementation. You can find it in the `examples` folder.	
 
 ## Versioning and license
 
