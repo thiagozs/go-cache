@@ -21,6 +21,7 @@ type BuntDBLayerRepo interface {
 	WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error
 	GetVal(key string) (string, error)
 }
+
 type buntdblayer struct {
 	db     *buntdb.DB
 	file   string
