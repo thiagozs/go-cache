@@ -3,8 +3,8 @@ package drivers
 import (
 	"fmt"
 
-	"github.com/buntobot/auto-reply/v1/cache/drivers/buntdblayer"
-	"github.com/buntobot/auto-reply/v1/cache/drivers/redislayer"
+	"github.com/thiagozs/go-cache/v1/cache/drivers/buntdblayer"
+	"github.com/thiagozs/go-cache/v1/cache/drivers/redislayer"
 )
 
 type Driver int
