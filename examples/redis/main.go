@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/thiagozs/go-cache/v1/cache"
-	"github.com/thiagozs/go-cache/v1/cache/drivers"
+	"github.com/thiagozs/go-cache/v1/cache/drivers/kind"
 	"github.com/thiagozs/go-cache/v1/cache/options"
 )
 
@@ -17,7 +17,7 @@ func main() {
 		options.OptPort(6379),
 	}
 
-	cache, err := cache.New(drivers.REDIS, opts...)
+	cache, err := cache.New(kind.REDIS, opts...)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

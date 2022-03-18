@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/thiagozs/go-cache/v1/cache"
-	"github.com/thiagozs/go-cache/v1/cache/drivers"
+	"github.com/thiagozs/go-cache/v1/cache/drivers/kind"
 	"github.com/thiagozs/go-cache/v1/cache/options"
 )
 
@@ -18,7 +18,7 @@ func main() {
 		options.OptTimeCleanUpInt(time.Second * 120),
 	}
 
-	cache, err := cache.New(drivers.GOCACHE, opts...)
+	cache, err := cache.New(kind.GOCACHE, opts...)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

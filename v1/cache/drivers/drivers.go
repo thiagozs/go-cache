@@ -3,21 +3,10 @@ package drivers
 import (
 	buntdblayer "github.com/thiagozs/go-cache/v1/cache/drivers/buntdb"
 	gocachelayer "github.com/thiagozs/go-cache/v1/cache/drivers/gocache"
+	"github.com/thiagozs/go-cache/v1/cache/drivers/kind"
 	redislayer "github.com/thiagozs/go-cache/v1/cache/drivers/redis"
 	"github.com/thiagozs/go-cache/v1/cache/options"
 )
-
-type Driver int
-
-const (
-	BUNTDB Driver = iota
-	REDIS
-	GOCACHE
-)
-
-func (d Driver) String() string {
-	return []string{"buntdb", "redis", "gocache"}[d]
-}
 
 type Drivers struct {
 	db DriverPort
@@ -30,18 +19,19 @@ type DriverPort interface {
 	WriteKeyValAsJSON(key string, val interface{}) error
 	WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error
 	GetVal(key string) (string, error)
+	GetDriver() kind.Driver
 }
 
-func NewDriver(driver Driver, opts ...options.Options) (DriverPort, error) {
+func NewDriver(driver kind.Driver, opts ...options.Options) (DriverPort, error) {
 	var db DriverPort
 	var err error
 	switch driver {
-	case BUNTDB:
-		db, err = buntdblayer.NewBuntDB(opts...)
-	case REDIS:
-		db, err = redislayer.NewRedis(opts...)
-	case GOCACHE:
-		db, err = gocachelayer.NewMemory(opts...)
+	case kind.BUNTDB:
+		db, err = buntdblayer.NewBuntDB(driver, opts...)
+	case kind.REDIS:
+		db, err = redislayer.NewRedis(driver, opts...)
+	case kind.GOCACHE:
+		db, err = gocachelayer.NewMemory(driver, opts...)
 	}
 	if err != nil {
 		return nil, err
@@ -71,4 +61,8 @@ func (d *Drivers) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds i
 
 func (d *Drivers) GetVal(key string) (string, error) {
 	return d.db.GetVal(key)
+}
+
+func (d *Drivers) GetDriver() kind.Driver {
+	return d.db.GetDriver()
 }

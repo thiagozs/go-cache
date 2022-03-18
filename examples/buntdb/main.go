@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/thiagozs/go-cache/v1/cache"
-	"github.com/thiagozs/go-cache/v1/cache/drivers"
+	"github.com/thiagozs/go-cache/v1/cache/drivers/kind"
 	"github.com/thiagozs/go-cache/v1/cache/options"
 )
 
@@ -19,7 +19,7 @@ func main() {
 		options.OptLogDisable(false),
 	}
 
-	cache, err := cache.New(drivers.BUNTDB, opts...)
+	cache, err := cache.New(kind.BUNTDB, opts...)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

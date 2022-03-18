@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"github.com/thiagozs/go-cache/v1/cache/drivers/kind"
 	"github.com/thiagozs/go-cache/v1/cache/options"
 	"github.com/thiagozs/go-utils/files"
 	"github.com/tidwall/buntdb"
@@ -20,6 +21,7 @@ type BuntDBLayerRepo interface {
 	WriteKeyValAsJSON(key string, val interface{}) error
 	WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error
 	GetVal(key string) (string, error)
+	GetDriver() kind.Driver
 }
 
 type buntdblayer struct {
@@ -28,9 +30,10 @@ type buntdblayer struct {
 	folder string
 	ttl    int
 	log    zerolog.Logger
+	driver kind.Driver
 }
 
-func NewBuntDB(opts ...options.Options) (BuntDBLayerRepo, error) {
+func NewBuntDB(driver kind.Driver, opts ...options.Options) (BuntDBLayerRepo, error) {
 	mts := &options.OptionsCfg{}
 	for _, op := range opts {
 		err := op(mts)
@@ -38,10 +41,10 @@ func NewBuntDB(opts ...options.Options) (BuntDBLayerRepo, error) {
 			return nil, err
 		}
 	}
-	return newInstance(mts)
+	return newInstance(driver, mts)
 }
 
-func newInstance(opt *options.OptionsCfg) (BuntDBLayerRepo, error) {
+func newInstance(driver kind.Driver, opt *options.OptionsCfg) (BuntDBLayerRepo, error) {
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -77,6 +80,7 @@ func newInstance(opt *options.OptionsCfg) (BuntDBLayerRepo, error) {
 		file:   opt.GetFileName(),
 		ttl:    opt.GetTTL(),
 		log:    log,
+		driver: driver,
 	}, nil
 }
 
@@ -176,4 +180,8 @@ func (d *buntdblayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSecon
 		return err
 	}
 	return d.WriteKeyValTTL(key, string(valueAsJSON), ttlSeconds)
+}
+
+func (d *buntdblayer) GetDriver() kind.Driver {
+	return d.driver
 }

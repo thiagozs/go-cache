@@ -9,6 +9,7 @@ import (
 
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog"
+	"github.com/thiagozs/go-cache/v1/cache/drivers/kind"
 	"github.com/thiagozs/go-cache/v1/cache/options"
 )
 
@@ -19,6 +20,7 @@ type MemoryLayerRepo interface {
 	WriteKeyValAsJSON(key string, val interface{}) error
 	WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error
 	GetVal(key string) (string, error)
+	GetDriver() kind.Driver
 }
 
 type memorylayer struct {
@@ -26,9 +28,10 @@ type memorylayer struct {
 	tCleanupInt time.Duration
 	log         zerolog.Logger
 	cache       *cache.Cache
+	driver      kind.Driver
 }
 
-func NewMemory(opts ...options.Options) (MemoryLayerRepo, error) {
+func NewMemory(driver kind.Driver, opts ...options.Options) (MemoryLayerRepo, error) {
 	mts := &options.OptionsCfg{}
 	for _, op := range opts {
 		err := op(mts)
@@ -36,10 +39,10 @@ func NewMemory(opts ...options.Options) (MemoryLayerRepo, error) {
 			return nil, err
 		}
 	}
-	return newInstance(mts)
+	return newInstance(driver, mts)
 }
 
-func newInstance(opt *options.OptionsCfg) (MemoryLayerRepo, error) {
+func newInstance(driver kind.Driver, opt *options.OptionsCfg) (MemoryLayerRepo, error) {
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -61,6 +64,7 @@ func newInstance(opt *options.OptionsCfg) (MemoryLayerRepo, error) {
 		cache:       c,
 		tExpiration: opt.GetTExpiration(),
 		tCleanupInt: opt.GetTCleanUpInt(),
+		driver:      driver,
 	}, nil
 }
 
@@ -133,4 +137,8 @@ func (m *memorylayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSecon
 	}
 
 	return m.WriteKeyValTTL(key, string(valueAsJSON), ttlSeconds)
+}
+
+func (d *memorylayer) GetDriver() kind.Driver {
+	return d.driver
 }

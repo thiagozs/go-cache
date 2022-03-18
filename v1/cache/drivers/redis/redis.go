@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-redis/redis/v7"
 	"github.com/rs/zerolog"
+	"github.com/thiagozs/go-cache/v1/cache/drivers/kind"
 	"github.com/thiagozs/go-cache/v1/cache/options"
 )
 
@@ -18,6 +19,7 @@ type RedisLayerRepo interface {
 	WriteKeyValAsJSON(key string, val interface{}) error
 	WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error
 	GetVal(key string) (string, error)
+	GetDriver() kind.Driver
 }
 
 type redisblayer struct {
@@ -28,9 +30,10 @@ type redisblayer struct {
 	ttl      int
 	log      zerolog.Logger
 	rdb      *redis.Client
+	driver   kind.Driver
 }
 
-func NewRedis(opts ...options.Options) (RedisLayerRepo, error) {
+func NewRedis(driver kind.Driver, opts ...options.Options) (RedisLayerRepo, error) {
 	mts := &options.OptionsCfg{}
 	for _, op := range opts {
 		err := op(mts)
@@ -38,10 +41,10 @@ func NewRedis(opts ...options.Options) (RedisLayerRepo, error) {
 			return nil, err
 		}
 	}
-	return newInstance(mts)
+	return newInstance(driver, mts)
 }
 
-func newInstance(opt *options.OptionsCfg) (RedisLayerRepo, error) {
+func newInstance(driver kind.Driver, opt *options.OptionsCfg) (RedisLayerRepo, error) {
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -76,6 +79,7 @@ func newInstance(opt *options.OptionsCfg) (RedisLayerRepo, error) {
 		port:     opt.GetPort(),
 		ttl:      opt.GetTTL(),
 		rdb:      rdb,
+		driver:   driver,
 	}, nil
 }
 
@@ -139,4 +143,8 @@ func (d *redisblayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSecon
 	}
 
 	return d.WriteKeyValTTL(key, string(valueAsJSON), ttlSeconds)
+}
+
+func (d *redisblayer) GetDriver() kind.Driver {
+	return d.driver
 }

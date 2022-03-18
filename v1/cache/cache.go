@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"github.com/rs/zerolog"
 	"github.com/thiagozs/go-cache/v1/cache/drivers"
+	"github.com/thiagozs/go-cache/v1/cache/drivers/kind"
 	"github.com/thiagozs/go-cache/v1/cache/options"
 )
 
@@ -13,14 +13,13 @@ type CachePort interface {
 	WriteKeyValAsJSON(key string, val interface{}) error
 	WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error
 	GetVal(key string) (string, error)
+	GetDriver() kind.Driver
 }
 type cache struct {
-	db  CachePort
-	ttl int
-	log zerolog.Logger
+	db CachePort
 }
 
-func New(driver drivers.Driver, opts ...options.Options) (CachePort, error) {
+func New(driver kind.Driver, opts ...options.Options) (CachePort, error) {
 
 	port, err := drivers.NewDriver(driver, opts...)
 	if err != nil {
@@ -54,4 +53,8 @@ func (c *cache) WriteKeyValAsJSON(key string, val interface{}) error {
 
 func (c *cache) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error {
 	return c.db.WriteKeyValAsJSONTTL(key, val, ttlSeconds)
+}
+
+func (c *cache) GetDriver() kind.Driver {
+	return c.db.GetDriver()
 }
