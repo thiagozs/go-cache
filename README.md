@@ -7,6 +7,7 @@ The cache you can choose between drivers for different storage.
 ### Implementation
 * [x] **BuntDB** 
 * [x] **Redis**
+* [x] **GoCache** memory cache
 
 ## How to use the cache
 
