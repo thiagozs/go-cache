@@ -91,6 +91,10 @@ func (d *buntdblayer) GetVal(key string) (string, error) {
 		value = val
 		return nil
 	})
+	d.log.Debug().Str("method", "get").
+		Str("key", key).
+		Str("value", value).
+		Msg("GetVal")
 	return value, err
 }
 
@@ -105,6 +109,10 @@ func (d *buntdblayer) DeleteKey(key string) (string, error) {
 		value = val
 		return nil
 	})
+	d.log.Debug().Str("method", "delete").
+		Str("key", key).
+		Str("value", value).
+		Msg("DeleteKey")
 	return value, err
 }
 
@@ -117,6 +125,10 @@ func (d *buntdblayer) WriteKeyVal(key string, val string) error {
 	if err != nil {
 		return err
 	}
+	d.log.Debug().Str("method", "write").
+		Str("key", key).
+		Str("value", val).
+		Msg("WriteKeyVal")
 	return nil
 }
 
@@ -134,13 +146,19 @@ func (d *buntdblayer) WriteKeyValTTL(key string, val string, ttlSeconds int) err
 		d.log.Debug().Err(err).Msg("WriteKeyValTTL")
 		return err
 	}
+
+	d.log.Debug().Str("method", "cache.Set").
+		Str("key", key).
+		Str("value", val).
+		Int64("ttl", int64(ttlSeconds)).
+		Msg("WriteKeyValTTL")
 	return nil
 }
 
 func (d *buntdblayer) WriteKeyValAsJSON(key string, val interface{}) error {
 	valueAsJSON, err := json.Marshal(val)
 	if err != nil {
-		d.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSON")
+		d.log.Debug().Str("method", "write").Err(err).Msg("WriteKeyValAsJSON")
 		return err
 	}
 	return d.WriteKeyVal(key, string(valueAsJSON))

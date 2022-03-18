@@ -84,6 +84,9 @@ func (r *redisblayer) Ping() (string, error) {
 }
 
 func (d *redisblayer) GetVal(key string) (string, error) {
+	d.log.Debug().Str("method", "get").
+		Str("key", key).
+		Msg("GetVal")
 	return d.rdb.Get(key).Result()
 }
 
@@ -93,10 +96,17 @@ func (d *redisblayer) DeleteKey(key string) (string, error) {
 		d.log.Debug().Err(err).Msg("DeleteKey")
 		return "", err
 	}
+	d.log.Debug().Str("method", "delete").
+		Str("key", key).
+		Msg("DeleteKey")
 	return fmt.Sprintf("%d", val), nil
 }
 
 func (d *redisblayer) WriteKeyVal(key string, val string) error {
+	d.log.Debug().Str("method", "cache.Set").
+		Str("key", key).
+		Str("value", val).
+		Msg("WriteKeyVal")
 	return d.rdb.Set(key, val, time.Duration(0)).Err()
 }
 

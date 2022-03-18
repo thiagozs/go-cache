@@ -2,6 +2,7 @@ package drivers
 
 import (
 	buntdblayer "github.com/thiagozs/go-cache/v1/cache/drivers/buntdb"
+	gocachelayer "github.com/thiagozs/go-cache/v1/cache/drivers/gocache"
 	redislayer "github.com/thiagozs/go-cache/v1/cache/drivers/redis"
 	"github.com/thiagozs/go-cache/v1/cache/options"
 )
@@ -11,10 +12,11 @@ type Driver int
 const (
 	BUNTDB Driver = iota
 	REDIS
+	GOCACHE
 )
 
 func (d Driver) String() string {
-	return []string{"buntdb", "redis"}[d]
+	return []string{"buntdb", "redis", "gocache"}[d]
 }
 
 type Drivers struct {
@@ -38,6 +40,8 @@ func NewDriver(driver Driver, opts ...options.Options) (DriverPort, error) {
 		db, err = buntdblayer.NewBuntDB(opts...)
 	case REDIS:
 		db, err = redislayer.NewRedis(opts...)
+	case GOCACHE:
+		db, err = gocachelayer.NewMemory(opts...)
 	}
 	if err != nil {
 		return nil, err

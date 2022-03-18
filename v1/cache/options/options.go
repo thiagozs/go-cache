@@ -1,21 +1,27 @@
 package options
 
-import "github.com/rs/zerolog"
+import (
+	"time"
+
+	"github.com/rs/zerolog"
+)
 
 type Options func(o *OptionsCfg) error
 
 type OptionsCfg struct {
-	fileName   string
-	folder     string
-	path       string
-	ttl        int
-	logDebug   bool
-	logDisable bool
-	host       string
-	password   string
-	user       string
-	port       int
-	log        zerolog.Logger
+	fileName    string
+	folder      string
+	path        string
+	ttl         int
+	logDebug    bool
+	logDisable  bool
+	host        string
+	password    string
+	user        string
+	port        int
+	log         zerolog.Logger
+	tExpiration time.Duration
+	tCleanUpInt time.Duration
 }
 
 func OptFileName(filename string) Options {
@@ -95,6 +101,20 @@ func OptLogger(log zerolog.Logger) Options {
 	}
 }
 
+func OptTimeExpiration(value time.Duration) Options {
+	return func(o *OptionsCfg) error {
+		o.tExpiration = value
+		return nil
+	}
+}
+
+func OptTimeCleanUpInt(value time.Duration) Options {
+	return func(o *OptionsCfg) error {
+		o.tCleanUpInt = value
+		return nil
+	}
+}
+
 // ------------- getters
 
 func (o *OptionsCfg) GetFileName() string {
@@ -139,4 +159,12 @@ func (o *OptionsCfg) GetPort() int {
 
 func (o *OptionsCfg) GetLog() zerolog.Logger {
 	return o.log
+}
+
+func (o *OptionsCfg) GetTExpiration() time.Duration {
+	return o.tExpiration
+}
+
+func (o *OptionsCfg) GetTCleanUpInt() time.Duration {
+	return o.tCleanUpInt
 }
