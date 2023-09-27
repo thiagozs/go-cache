@@ -22,6 +22,8 @@ type OptionsCfg struct {
 	log         zerolog.Logger
 	tExpiration time.Duration
 	tCleanUpInt time.Duration
+	database    string
+	version     string
 }
 
 func OptFileName(filename string) Options {
@@ -115,6 +117,20 @@ func OptTimeCleanUpInt(value time.Duration) Options {
 	}
 }
 
+func OptDatabase(value string) Options {
+	return func(o *OptionsCfg) error {
+		o.database = value
+		return nil
+	}
+}
+
+func OptVersion(value string) Options {
+	return func(o *OptionsCfg) error {
+		o.version = value
+		return nil
+	}
+}
+
 // ------------- getters
 
 func (o *OptionsCfg) GetFileName() string {
@@ -167,4 +183,12 @@ func (o *OptionsCfg) GetTExpiration() time.Duration {
 
 func (o *OptionsCfg) GetTCleanUpInt() time.Duration {
 	return o.tCleanUpInt
+}
+
+func (o *OptionsCfg) GetDatabase() string {
+	return o.database
+}
+
+func (o *OptionsCfg) GetVersion() string {
+	return o.version
 }

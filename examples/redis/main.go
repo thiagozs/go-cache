@@ -40,4 +40,10 @@ func main() {
 	fmt.Println("v1:", v1)
 	fmt.Println("v2:", v2)
 
+	v3, err := cache.GetVal("key3")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("v3:", v3)
 }

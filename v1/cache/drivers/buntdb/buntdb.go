@@ -1,4 +1,4 @@
-package buntdblayer
+package buntdb
 
 import (
 	"encoding/json"
@@ -14,17 +14,7 @@ import (
 	"github.com/tidwall/buntdb"
 )
 
-type BuntDBLayerRepo interface {
-	WriteKeyVal(key string, val string) error
-	WriteKeyValTTL(key string, val string, ttlSeconds int) error
-	DeleteKey(key string) (string, error)
-	WriteKeyValAsJSON(key string, val interface{}) error
-	WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error
-	GetVal(key string) (string, error)
-	GetDriver() kind.Driver
-}
-
-type buntdblayer struct {
+type BuntDBLayer struct {
 	db     *buntdb.DB
 	file   string
 	folder string
@@ -33,18 +23,18 @@ type buntdblayer struct {
 	driver kind.Driver
 }
 
-func NewBuntDB(driver kind.Driver, opts ...options.Options) (BuntDBLayerRepo, error) {
+func NewBuntDB(driver kind.Driver, opts ...options.Options) (*BuntDBLayer, error) {
 	mts := &options.OptionsCfg{}
 	for _, op := range opts {
 		err := op(mts)
 		if err != nil {
-			return nil, err
+			return &BuntDBLayer{}, err
 		}
 	}
 	return newInstance(driver, mts)
 }
 
-func newInstance(driver kind.Driver, opt *options.OptionsCfg) (BuntDBLayerRepo, error) {
+func newInstance(driver kind.Driver, opt *options.OptionsCfg) (*BuntDBLayer, error) {
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -74,7 +64,7 @@ func newInstance(driver kind.Driver, opt *options.OptionsCfg) (BuntDBLayerRepo, 
 		log.Info().Err(err).Msg("could not open data file path")
 		return nil, err
 	}
-	return &buntdblayer{
+	return &BuntDBLayer{
 		db:     db,
 		folder: opt.GetFolder(),
 		file:   opt.GetFileName(),
@@ -84,7 +74,7 @@ func newInstance(driver kind.Driver, opt *options.OptionsCfg) (BuntDBLayerRepo, 
 	}, nil
 }
 
-func (d *buntdblayer) GetVal(key string) (string, error) {
+func (d *BuntDBLayer) GetVal(key string) (string, error) {
 	var value string
 	err := d.db.View(func(tx *buntdb.Tx) error {
 		val, err := tx.Get(key)
@@ -102,7 +92,7 @@ func (d *buntdblayer) GetVal(key string) (string, error) {
 	return value, err
 }
 
-func (d *buntdblayer) DeleteKey(key string) (string, error) {
+func (d *BuntDBLayer) DeleteKey(key string) (string, error) {
 	var value string
 	err := d.db.Update(func(tx *buntdb.Tx) error {
 		val, err := tx.Delete(key)
@@ -120,7 +110,7 @@ func (d *buntdblayer) DeleteKey(key string) (string, error) {
 	return value, err
 }
 
-func (d *buntdblayer) WriteKeyVal(key string, val string) error {
+func (d *BuntDBLayer) WriteKeyVal(key string, val string) error {
 	err := d.db.Update(func(tx *buntdb.Tx) error {
 		_, _, err := tx.Set(key, val, nil)
 		d.log.Debug().Err(err).Msg("WriteKeyVal")
@@ -136,7 +126,7 @@ func (d *buntdblayer) WriteKeyVal(key string, val string) error {
 	return nil
 }
 
-func (d *buntdblayer) WriteKeyValTTL(key string, val string, ttlSeconds int) error {
+func (d *BuntDBLayer) WriteKeyValTTL(key string, val string, ttlSeconds int) error {
 	if ttlSeconds == 0 {
 		d.log.Debug().Int("ttl_seconds", d.ttl).Msg("WriteKeyValTTL")
 		ttlSeconds = d.ttl
@@ -159,7 +149,7 @@ func (d *buntdblayer) WriteKeyValTTL(key string, val string, ttlSeconds int) err
 	return nil
 }
 
-func (d *buntdblayer) WriteKeyValAsJSON(key string, val interface{}) error {
+func (d *BuntDBLayer) WriteKeyValAsJSON(key string, val interface{}) error {
 	valueAsJSON, err := json.Marshal(val)
 	if err != nil {
 		d.log.Debug().Str("method", "write").Err(err).Msg("WriteKeyValAsJSON")
@@ -168,7 +158,7 @@ func (d *buntdblayer) WriteKeyValAsJSON(key string, val interface{}) error {
 	return d.WriteKeyVal(key, string(valueAsJSON))
 }
 
-func (d *buntdblayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error {
+func (d *BuntDBLayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error {
 	if ttlSeconds == 0 {
 		d.log.Debug().Int("ttl_seconds", d.ttl).Msg("WriteKeyValTTL")
 		ttlSeconds = d.ttl
@@ -182,6 +172,6 @@ func (d *buntdblayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSecon
 	return d.WriteKeyValTTL(key, string(valueAsJSON), ttlSeconds)
 }
 
-func (d *buntdblayer) GetDriver() kind.Driver {
+func (d *BuntDBLayer) GetDriver() kind.Driver {
 	return d.driver
 }

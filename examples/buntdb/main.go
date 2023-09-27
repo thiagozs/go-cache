@@ -9,8 +9,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello World!")
-
 	opts := []options.Options{
 		options.OptFolder("./tmp/cache"),
 		options.OptFileName("cache.db"),

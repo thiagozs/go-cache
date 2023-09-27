@@ -1,4 +1,4 @@
-package memorylayer
+package gocache
 
 import (
 	"encoding/json"
@@ -13,17 +13,7 @@ import (
 	"github.com/thiagozs/go-cache/v1/cache/options"
 )
 
-type MemoryLayerRepo interface {
-	WriteKeyVal(key string, val string) error
-	WriteKeyValTTL(key string, val string, ttlSeconds int) error
-	DeleteKey(key string) (string, error)
-	WriteKeyValAsJSON(key string, val interface{}) error
-	WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error
-	GetVal(key string) (string, error)
-	GetDriver() kind.Driver
-}
-
-type memorylayer struct {
+type MemoryLayer struct {
 	tExpiration time.Duration
 	tCleanupInt time.Duration
 	log         zerolog.Logger
@@ -31,18 +21,18 @@ type memorylayer struct {
 	driver      kind.Driver
 }
 
-func NewMemory(driver kind.Driver, opts ...options.Options) (MemoryLayerRepo, error) {
+func NewMemory(driver kind.Driver, opts ...options.Options) (*MemoryLayer, error) {
 	mts := &options.OptionsCfg{}
 	for _, op := range opts {
 		err := op(mts)
 		if err != nil {
-			return nil, err
+			return &MemoryLayer{}, err
 		}
 	}
 	return newInstance(driver, mts)
 }
 
-func newInstance(driver kind.Driver, opt *options.OptionsCfg) (MemoryLayerRepo, error) {
+func newInstance(driver kind.Driver, opt *options.OptionsCfg) (*MemoryLayer, error) {
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -59,7 +49,7 @@ func newInstance(driver kind.Driver, opt *options.OptionsCfg) (MemoryLayerRepo, 
 
 	c := cache.New(opt.GetTExpiration(), opt.GetTCleanUpInt())
 
-	return &memorylayer{
+	return &MemoryLayer{
 		log:         log,
 		cache:       c,
 		tExpiration: opt.GetTExpiration(),
@@ -68,7 +58,7 @@ func newInstance(driver kind.Driver, opt *options.OptionsCfg) (MemoryLayerRepo, 
 	}, nil
 }
 
-func (m *memorylayer) GetVal(key string) (string, error) {
+func (m *MemoryLayer) GetVal(key string) (string, error) {
 	iface, found := m.cache.Get(key)
 	if !found {
 		err := fmt.Errorf("not found")
@@ -83,7 +73,7 @@ func (m *memorylayer) GetVal(key string) (string, error) {
 	return str, nil
 }
 
-func (m *memorylayer) DeleteKey(key string) (string, error) {
+func (m *MemoryLayer) DeleteKey(key string) (string, error) {
 	m.log.Debug().Str("method", "delete").
 		Str("key", key).
 		Msg("DeleteKey")
@@ -91,7 +81,7 @@ func (m *memorylayer) DeleteKey(key string) (string, error) {
 	return "", nil
 }
 
-func (m *memorylayer) WriteKeyVal(key string, val string) error {
+func (m *MemoryLayer) WriteKeyVal(key string, val string) error {
 	m.log.Debug().Str("method", "write").
 		Str("key", key).
 		Str("value", val).
@@ -100,7 +90,7 @@ func (m *memorylayer) WriteKeyVal(key string, val string) error {
 	return nil
 }
 
-func (m *memorylayer) WriteKeyValTTL(key string, val string, ttlSeconds int) error {
+func (m *MemoryLayer) WriteKeyValTTL(key string, val string, ttlSeconds int) error {
 	ttlc := time.Duration(60) * time.Second
 	if ttlSeconds > 0 {
 		m.log.Debug().Int("ttl_seconds", int(ttlc)).Msg("WriteKeyValTTL")
@@ -115,7 +105,7 @@ func (m *memorylayer) WriteKeyValTTL(key string, val string, ttlSeconds int) err
 	return nil
 }
 
-func (m *memorylayer) WriteKeyValAsJSON(key string, val interface{}) error {
+func (m *MemoryLayer) WriteKeyValAsJSON(key string, val interface{}) error {
 	valueAsJSON, err := json.Marshal(val)
 	if err != nil {
 		m.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSON")
@@ -124,7 +114,7 @@ func (m *memorylayer) WriteKeyValAsJSON(key string, val interface{}) error {
 	return m.WriteKeyVal(key, string(valueAsJSON))
 }
 
-func (m *memorylayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error {
+func (m *MemoryLayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error {
 	ttlc := 60
 	if ttlSeconds > 0 {
 		m.log.Debug().Int("ttl_seconds", ttlc).Msg("WriteKeyValAsJSONTTL")
@@ -139,6 +129,6 @@ func (m *memorylayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSecon
 	return m.WriteKeyValTTL(key, string(valueAsJSON), ttlSeconds)
 }
 
-func (d *memorylayer) GetDriver() kind.Driver {
+func (d *MemoryLayer) GetDriver() kind.Driver {
 	return d.driver
 }
