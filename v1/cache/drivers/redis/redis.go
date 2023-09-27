@@ -127,15 +127,15 @@ func (d *RedisLayer) WriteKeyVal(key string, val string) error {
 	return d.rdb.Set(context.Background(), key, val, time.Duration(0)).Err()
 }
 
-func (d *RedisLayer) WriteKeyValTTL(key string, val string, ttlSeconds int) error {
-	if ttlSeconds == 0 {
+func (d *RedisLayer) WriteKeyValTTL(key string, val string, ttlInSeconds int) error {
+	if ttlInSeconds == 0 {
 		d.log.Debug().Int("ttl_seconds", d.ttl).Msg("WriteKeyValTTL")
-		ttlSeconds = d.ttl
+		ttlInSeconds = d.ttl
 	}
-	return d.rdb.Set(context.Background(), key, val, time.Duration(ttlSeconds)).Err()
+	return d.rdb.Set(context.Background(), key, val, time.Duration(ttlInSeconds)*time.Second).Err()
 }
 
-func (d *RedisLayer) WriteKeyValAsJSON(key string, val interface{}) error {
+func (d *RedisLayer) WriteKeyValAsJSON(key string, val any) error {
 	valueAsJSON, err := json.Marshal(val)
 	if err != nil {
 		d.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSON")
@@ -144,10 +144,10 @@ func (d *RedisLayer) WriteKeyValAsJSON(key string, val interface{}) error {
 	return d.WriteKeyVal(key, string(valueAsJSON))
 }
 
-func (d *RedisLayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error {
-	if ttlSeconds == 0 {
+func (d *RedisLayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlInSeconds int) error {
+	if ttlInSeconds == 0 {
 		d.log.Debug().Int("ttl_seconds", d.ttl).Msg("WriteKeyValAsJSONTTL")
-		ttlSeconds = d.ttl
+		ttlInSeconds = d.ttl
 	}
 	valueAsJSON, err := json.Marshal(val)
 	if err != nil {
@@ -155,7 +155,7 @@ func (d *RedisLayer) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSecond
 		return err
 	}
 
-	return d.WriteKeyValTTL(key, string(valueAsJSON), ttlSeconds)
+	return d.WriteKeyValTTL(key, string(valueAsJSON), ttlInSeconds)
 }
 
 func (d *RedisLayer) GetDriver() kind.Driver {

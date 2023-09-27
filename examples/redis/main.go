@@ -29,21 +29,37 @@ func main() {
 	v1, err := cache.GetVal("key1")
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
 	}
 
 	v2, err := cache.GetVal("key2")
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
 	}
+
 	fmt.Println("v1:", v1)
 	fmt.Println("v2:", v2)
 
 	v3, err := cache.GetVal("key3")
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
 	}
 	fmt.Println("v3:", v3)
+
+	type data struct {
+		Name string
+	}
+
+	d := data{
+		Name: "Thiago",
+	}
+	if err := cache.WriteKeyValAsJSONTTL("key4", d, 2000); err != nil {
+		fmt.Println("Error:", err)
+	}
+
+	v, err := cache.GetVal("key4")
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+	fmt.Println("v4:", v)
+
 }
