@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/thiagozs/go-cache/v1/cache"
-	"github.com/thiagozs/go-cache/v1/cache/drivers/kind"
-	"github.com/thiagozs/go-cache/v1/cache/options"
+	"github.com/thiagozs/go-cache"
+	"github.com/thiagozs/go-cache/kind"
 )
 
 func main() {
-	opts := []options.Options{
-		options.OptTTL(3000),
-		options.OptLogDebug(true),
-		options.OptLogDisable(false),
-		options.OptTimeExpiration(time.Second * 60),
-		options.OptTimeCleanUpInt(time.Second * 120),
+	opts := []cache.Options{
+		cache.OptTTL(3000),
+		cache.OptLogDebug(true),
+		cache.OptLogDisable(false),
+		cache.OptTimeExpiration(time.Second * 60),
+		cache.OptTimeCleanUpInt(time.Second * 120),
+		cache.OptDriverKind(kind.GOCACHE),
 	}
 
-	cache, err := cache.New(kind.GOCACHE, opts...)
+	cache, err := cache.New(opts...)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

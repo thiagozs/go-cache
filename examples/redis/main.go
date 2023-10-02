@@ -3,21 +3,21 @@ package main
 import (
 	"fmt"
 
-	"github.com/thiagozs/go-cache/v1/cache"
-	"github.com/thiagozs/go-cache/v1/cache/drivers/kind"
-	"github.com/thiagozs/go-cache/v1/cache/options"
+	"github.com/thiagozs/go-cache"
+	"github.com/thiagozs/go-cache/kind"
 )
 
 func main() {
-	opts := []options.Options{
-		options.OptTTL(3000),
-		options.OptLogDebug(false),
-		options.OptLogDisable(false),
-		options.OptHost("localhost"),
-		options.OptPort(6379),
+	opts := []cache.Options{
+		cache.OptTTL(3000),
+		cache.OptLogDebug(false),
+		cache.OptLogDisable(false),
+		cache.OptHost("localhost"),
+		cache.OptPort(6379),
+		cache.OptDriverKind(kind.REDIS),
 	}
 
-	cache, err := cache.New(kind.REDIS, opts...)
+	cache, err := cache.New(opts...)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

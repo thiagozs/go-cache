@@ -14,7 +14,7 @@ The cache you can choose between drivers for different storage.
 Very simple.
 
 ```golang
-cache, err := cache.New(kind.BUNTDB, opts...)
+cache, err := cache.New(opts...)
 if err != nil {
 	fmt.Println("Error:", err)
 	return
