@@ -7,8 +7,8 @@ package redis
 import (
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	kind "github.com/thiagozs/go-cache/kind"
-	gomock "go.uber.org/mock/gomock"
 )
 
 // MockRedisLayerRepo is a mock of RedisLayerRepo interface.
@@ -32,6 +32,21 @@ func NewMockRedisLayerRepo(ctrl *gomock.Controller) *MockRedisLayerRepo {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRedisLayerRepo) EXPECT() *MockRedisLayerRepoMockRecorder {
 	return m.recorder
+}
+
+// Decr mocks base method.
+func (m *MockRedisLayerRepo) Decr(key string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Decr", key)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Decr indicates an expected call of Decr.
+func (mr *MockRedisLayerRepoMockRecorder) Decr(key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Decr", reflect.TypeOf((*MockRedisLayerRepo)(nil).Decr), key)
 }
 
 // DeleteKey mocks base method.
@@ -76,6 +91,21 @@ func (m *MockRedisLayerRepo) GetVal(key string) (string, error) {
 func (mr *MockRedisLayerRepoMockRecorder) GetVal(key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVal", reflect.TypeOf((*MockRedisLayerRepo)(nil).GetVal), key)
+}
+
+// Incr mocks base method.
+func (m *MockRedisLayerRepo) Incr(key string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Incr", key)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Incr indicates an expected call of Incr.
+func (mr *MockRedisLayerRepoMockRecorder) Incr(key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockRedisLayerRepo)(nil).Incr), key)
 }
 
 // Ping mocks base method.

@@ -133,3 +133,11 @@ func (r *RedisLayer) WriteKeyValAsJSONTTL(key string, val any, insec int) error 
 func (r *RedisLayer) GetDriver() kind.Driver {
 	return r.params.GetDriver()
 }
+
+func (r *RedisLayer) Incr(key string) (int64, error) {
+	return r.params.GetRedis().Incr(context.Background(), key).Result()
+}
+
+func (r *RedisLayer) Decr(key string) (int64, error) {
+	return r.params.GetRedis().Decr(context.Background(), key).Result()
+}

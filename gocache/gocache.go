@@ -10,10 +10,12 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog"
 	"github.com/thiagozs/go-cache/kind"
+	"github.com/thiagozs/go-xutils"
 )
 
 type GocacheLayer struct {
 	params *MemoryParams
+	utils  *xutils.XUtils
 }
 
 func NewMemory(opts ...Options) (*GocacheLayer, error) {
@@ -42,6 +44,7 @@ func NewMemory(opts ...Options) (*GocacheLayer, error) {
 
 	return &GocacheLayer{
 		params: params,
+		utils:  xutils.New(),
 	}, nil
 }
 
@@ -120,4 +123,58 @@ func (m *GocacheLayer) WriteKeyValAsJSONTTL(key string, val any, insec int) erro
 
 func (m *GocacheLayer) GetDriver() kind.Driver {
 	return m.params.GetDriver()
+}
+
+func (m *GocacheLayer) Incr(key string) (int64, error) {
+	val, err := m.GetVal(key)
+	if err != nil {
+		err := fmt.Errorf("not found")
+		m.params.log.Debug().Str("method", "cache.Get").Err(err).Msg("Decr")
+		return 0, err
+	}
+
+	v, _ := m.utils.Convs().ToInt64(val)
+
+	m.params.log.Debug().Str("method", "get").
+		Str("key", key).
+		Int64("value", v).
+		Msg("Incr")
+
+	v = v + 1
+
+	if err := m.WriteKeyVal(key,
+		fmt.Sprintf("%d", v)); err != nil {
+		m.params.log.Debug().Str("method", "WriteKeyVal").
+			Err(err).Msg("Incr")
+		return 0, err
+	}
+
+	return v, nil
+}
+
+func (m *GocacheLayer) Decr(key string) (int64, error) {
+	val, err := m.GetVal(key)
+	if err != nil {
+		err := fmt.Errorf("not found")
+		m.params.log.Debug().Str("method", "cache.Get").Err(err).Msg("Decr")
+		return 0, err
+	}
+
+	v, _ := m.utils.Convs().ToInt64(val)
+
+	m.params.log.Debug().Str("method", "get").
+		Str("key", key).
+		Int64("value", v).
+		Msg("Decr")
+
+	v = v - 1
+
+	if err := m.WriteKeyVal(key,
+		fmt.Sprintf("%d", v)); err != nil {
+		m.params.log.Debug().Str("method", "WriteKeyVal").
+			Err(err).Msg("Decr")
+		return 0, err
+	}
+
+	return v, nil
 }

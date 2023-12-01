@@ -9,7 +9,7 @@ import (
 	"github.com/thiagozs/go-cache/kind"
 	"github.com/thiagozs/go-cache/redis"
 
-	"go.uber.org/mock/gomock"
+	"github.com/golang/mock/gomock"
 )
 
 func TestNewDriver(t *testing.T) {
@@ -424,6 +424,108 @@ func TestCacheWriteKeyValAsJSONTTL(t *testing.T) {
 
 			err = cache.WriteKeyValAsJSONTTL(tt.key, tt.value, tt.ttl)
 			assert.Equal(t, tt.expected, err)
+		})
+	}
+}
+
+func TestCacheIncr(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	tests := []struct {
+		name     string
+		mock     any
+		key      string
+		expected int64
+	}{
+		{
+			name:     "Redis",
+			mock:     redis.NewMockRedisLayerRepo(ctrl),
+			key:      "key1",
+			expected: 1,
+		},
+		{
+			name:     "GoCache",
+			mock:     gocache.NewMockGocacheLayerRepo(ctrl),
+			key:      "key2",
+			expected: 2,
+		},
+		{
+			name:     "BuntDB",
+			mock:     buntdb.NewMockBuntDBLayerRepo(ctrl),
+			key:      "key3",
+			expected: 3,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch v := tt.mock.(type) {
+			case *redis.MockRedisLayerRepo:
+				v.EXPECT().Incr(tt.key).Return(tt.expected, nil).Times(1)
+			case *gocache.MockGocacheLayerRepo:
+				v.EXPECT().Incr(tt.key).Return(tt.expected, nil).Times(1)
+			case *buntdb.MockBuntDBLayerRepo:
+				v.EXPECT().Incr(tt.key).Return(tt.expected, nil).Times(1)
+			}
+
+			cache, err := New(OptCache(tt.mock.(CacheRepo)))
+			assert.NoError(t, err)
+
+			value, err := cache.Incr(tt.key)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, value)
+		})
+	}
+}
+
+func TestCacheDecr(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	tests := []struct {
+		name     string
+		mock     any
+		key      string
+		expected int64
+	}{
+		{
+			name:     "Redis",
+			mock:     redis.NewMockRedisLayerRepo(ctrl),
+			key:      "key1",
+			expected: 1,
+		},
+		{
+			name:     "GoCache",
+			mock:     gocache.NewMockGocacheLayerRepo(ctrl),
+			key:      "key2",
+			expected: 2,
+		},
+		{
+			name:     "BuntDB",
+			mock:     buntdb.NewMockBuntDBLayerRepo(ctrl),
+			key:      "key3",
+			expected: 3,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch v := tt.mock.(type) {
+			case *redis.MockRedisLayerRepo:
+				v.EXPECT().Decr(tt.key).Return(tt.expected, nil).Times(1)
+			case *gocache.MockGocacheLayerRepo:
+				v.EXPECT().Decr(tt.key).Return(tt.expected, nil).Times(1)
+			case *buntdb.MockBuntDBLayerRepo:
+				v.EXPECT().Decr(tt.key).Return(tt.expected, nil).Times(1)
+			}
+
+			cache, err := New(OptCache(tt.mock.(CacheRepo)))
+			assert.NoError(t, err)
+
+			value, err := cache.Decr(tt.key)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, value)
 		})
 	}
 }

@@ -15,4 +15,6 @@ type CacheRepo interface {
 	WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error
 	GetVal(key string) (string, error)
 	GetDriver() kind.Driver
+	Incr(key string) (int64, error)
+	Decr(key string) (int64, error)
 }

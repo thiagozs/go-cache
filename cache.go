@@ -90,3 +90,11 @@ func (d *Cache) GetVal(key string) (string, error) {
 func (d *Cache) GetDriver() kind.Driver {
 	return d.db.GetDriver()
 }
+
+func (d *Cache) Incr(key string) (int64, error) {
+	return d.db.Incr(key)
+}
+
+func (d *Cache) Decr(key string) (int64, error) {
+	return d.db.Decr(key)
+}

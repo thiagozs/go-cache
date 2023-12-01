@@ -10,11 +10,13 @@ import (
 	"github.com/rs/zerolog"
 	kind "github.com/thiagozs/go-cache/kind"
 	"github.com/thiagozs/go-utils/files"
+	"github.com/thiagozs/go-xutils"
 	"github.com/tidwall/buntdb"
 )
 
 type BuntDBLayer struct {
 	params *BuntDBParams
+	utils  *xutils.XUtils
 }
 
 func NewBuntDB(opts ...Options) (*BuntDBLayer, error) {
@@ -57,6 +59,7 @@ func NewBuntDB(opts ...Options) (*BuntDBLayer, error) {
 
 	return &BuntDBLayer{
 		params: params,
+		utils:  xutils.New(),
 	}, nil
 }
 
@@ -159,4 +162,72 @@ func (d *BuntDBLayer) WriteKeyValAsJSONTTL(key string, val any, insec int) error
 
 func (d *BuntDBLayer) GetDriver() kind.Driver {
 	return d.params.GetDriver()
+}
+
+func (d *BuntDBLayer) Incr(key string) (int64, error) {
+	val, err := d.GetVal(key)
+	if err != nil {
+		d.params.log.Debug().Err(err).Msg("Incr")
+		return 0, err
+	}
+
+	d.params.log.Debug().Str("method", "incr").
+		Str("key", key).
+		Str("value", val).
+		Msg("Incr")
+
+	value, err := d.utils.Convs().ToInt64(val)
+	if err != nil {
+		d.params.log.Debug().Err(err).Msg("Incr")
+		return 0, err
+	}
+
+	value = value + 1
+
+	err = d.WriteKeyVal(key, fmt.Sprintf("%d", value))
+	if err != nil {
+		d.params.log.Debug().Err(err).Msg("Incr")
+		return 0, err
+	}
+
+	d.params.log.Debug().Str("method", "incr").
+		Str("key", key).
+		Int64("value", value).
+		Msg("Incr")
+
+	return value, nil
+}
+
+func (d *BuntDBLayer) Decr(key string) (int64, error) {
+	val, err := d.GetVal(key)
+	if err != nil {
+		d.params.log.Debug().Err(err).Msg("Decr")
+		return 0, err
+	}
+
+	d.params.log.Debug().Str("method", "decr").
+		Str("key", key).
+		Str("value", val).
+		Msg("Decr")
+
+	value, err := d.utils.Convs().ToInt64(val)
+	if err != nil {
+		d.params.log.Debug().Err(err).Msg("Decr")
+		return 0, err
+	}
+
+	value = value - 1
+
+	err = d.WriteKeyVal(key, fmt.Sprintf("%d", value))
+	if err != nil {
+		d.params.log.Debug().Err(err).Msg("Decr")
+		return 0, err
+	}
+
+	d.params.log.Debug().Str("method", "decr").
+		Str("key", key).
+		Int64("value", value).
+		Msg("Decr")
+
+	return value, nil
 }

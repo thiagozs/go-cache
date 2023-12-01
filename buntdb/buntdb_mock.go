@@ -7,8 +7,8 @@ package buntdb
 import (
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	kind "github.com/thiagozs/go-cache/kind"
-	gomock "go.uber.org/mock/gomock"
 )
 
 // MockBuntDBLayerRepo is a mock of BuntDBLayerRepo interface.
@@ -32,6 +32,21 @@ func NewMockBuntDBLayerRepo(ctrl *gomock.Controller) *MockBuntDBLayerRepo {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBuntDBLayerRepo) EXPECT() *MockBuntDBLayerRepoMockRecorder {
 	return m.recorder
+}
+
+// Decr mocks base method.
+func (m *MockBuntDBLayerRepo) Decr(key string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Decr", key)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Decr indicates an expected call of Decr.
+func (mr *MockBuntDBLayerRepoMockRecorder) Decr(key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Decr", reflect.TypeOf((*MockBuntDBLayerRepo)(nil).Decr), key)
 }
 
 // DeleteKey mocks base method.
@@ -76,6 +91,21 @@ func (m *MockBuntDBLayerRepo) GetVal(key string) (string, error) {
 func (mr *MockBuntDBLayerRepoMockRecorder) GetVal(key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVal", reflect.TypeOf((*MockBuntDBLayerRepo)(nil).GetVal), key)
+}
+
+// Incr mocks base method.
+func (m *MockBuntDBLayerRepo) Incr(key string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Incr", key)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Incr indicates an expected call of Incr.
+func (mr *MockBuntDBLayerRepoMockRecorder) Incr(key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockBuntDBLayerRepo)(nil).Incr), key)
 }
 
 // WriteKeyVal mocks base method.

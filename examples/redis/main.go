@@ -62,4 +62,20 @@ func main() {
 	}
 	fmt.Println("v4:", v)
 
+	cache.WriteKeyVal("key5", "1")
+
+	v5, err := cache.Incr("key5")
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+
+	fmt.Println("v5:", v5)
+
+	v6, err := cache.Decr("key5")
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+
+	fmt.Println("v6:", v6)
+
 }

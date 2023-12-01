@@ -15,4 +15,6 @@ type GocacheLayerRepo interface {
 	WriteKeyValAsJSON(key string, val any) error
 	WriteKeyValAsJSONTTL(key string, val any, insec int) error
 	GetDriver() kind.Driver
+	Incr(key string) (int64, error)
+	Decr(key string) (int64, error)
 }

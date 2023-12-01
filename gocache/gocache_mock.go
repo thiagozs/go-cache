@@ -7,8 +7,8 @@ package gocache
 import (
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
 	kind "github.com/thiagozs/go-cache/kind"
-	gomock "go.uber.org/mock/gomock"
 )
 
 // MockGocacheLayerRepo is a mock of GocacheLayerRepo interface.
@@ -32,6 +32,21 @@ func NewMockGocacheLayerRepo(ctrl *gomock.Controller) *MockGocacheLayerRepo {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockGocacheLayerRepo) EXPECT() *MockGocacheLayerRepoMockRecorder {
 	return m.recorder
+}
+
+// Decr mocks base method.
+func (m *MockGocacheLayerRepo) Decr(key string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Decr", key)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Decr indicates an expected call of Decr.
+func (mr *MockGocacheLayerRepoMockRecorder) Decr(key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Decr", reflect.TypeOf((*MockGocacheLayerRepo)(nil).Decr), key)
 }
 
 // DeleteKey mocks base method.
@@ -76,6 +91,21 @@ func (m *MockGocacheLayerRepo) GetVal(key string) (string, error) {
 func (mr *MockGocacheLayerRepoMockRecorder) GetVal(key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVal", reflect.TypeOf((*MockGocacheLayerRepo)(nil).GetVal), key)
+}
+
+// Incr mocks base method.
+func (m *MockGocacheLayerRepo) Incr(key string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Incr", key)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Incr indicates an expected call of Incr.
+func (mr *MockGocacheLayerRepoMockRecorder) Incr(key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Incr", reflect.TypeOf((*MockGocacheLayerRepo)(nil).Incr), key)
 }
 
 // WriteKeyVal mocks base method.
