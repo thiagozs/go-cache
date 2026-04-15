@@ -1,13 +1,14 @@
 package cache
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/thiagozs/go-cache/buntdb"
-	"github.com/thiagozs/go-cache/gocache"
+	"github.com/thiagozs/go-cache/internal/buntdb"
+	"github.com/thiagozs/go-cache/internal/gocache"
+	"github.com/thiagozs/go-cache/internal/redis"
 	"github.com/thiagozs/go-cache/kind"
-	"github.com/thiagozs/go-cache/redis"
 
 	"github.com/golang/mock/gomock"
 )
@@ -306,6 +307,7 @@ func TestCacheDeleteKey(t *testing.T) {
 	}
 }
 
+// TestCacheWriteKeyValAsJSON verifies the facade marshals the value and calls WriteKeyVal.
 func TestCacheWriteKeyValAsJSON(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -347,13 +349,16 @@ func TestCacheWriteKeyValAsJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			jsonBytes, err := json.Marshal(tt.value)
+			assert.NoError(t, err)
+
 			switch v := tt.mock.(type) {
 			case *redis.MockRedisLayerRepo:
-				v.EXPECT().WriteKeyValAsJSON(tt.key, tt.value).Return(tt.expected).Times(1)
+				v.EXPECT().WriteKeyVal(tt.key, string(jsonBytes)).Return(tt.expected).Times(1)
 			case *gocache.MockGocacheLayerRepo:
-				v.EXPECT().WriteKeyValAsJSON(tt.key, tt.value).Return(tt.expected).Times(1)
+				v.EXPECT().WriteKeyVal(tt.key, string(jsonBytes)).Return(tt.expected).Times(1)
 			case *buntdb.MockBuntDBLayerRepo:
-				v.EXPECT().WriteKeyValAsJSON(tt.key, tt.value).Return(tt.expected).Times(1)
+				v.EXPECT().WriteKeyVal(tt.key, string(jsonBytes)).Return(tt.expected).Times(1)
 			}
 
 			cache, err := New(OptCache(tt.mock.(CacheRepo)))
@@ -365,6 +370,7 @@ func TestCacheWriteKeyValAsJSON(t *testing.T) {
 	}
 }
 
+// TestCacheWriteKeyValAsJSONTTL verifies the facade marshals the value and calls WriteKeyValTTL.
 func TestCacheWriteKeyValAsJSONTTL(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -410,13 +416,16 @@ func TestCacheWriteKeyValAsJSONTTL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			jsonBytes, err := json.Marshal(tt.value)
+			assert.NoError(t, err)
+
 			switch v := tt.mock.(type) {
 			case *redis.MockRedisLayerRepo:
-				v.EXPECT().WriteKeyValAsJSONTTL(tt.key, tt.value, tt.ttl).Return(tt.expected).Times(1)
+				v.EXPECT().WriteKeyValTTL(tt.key, string(jsonBytes), tt.ttl).Return(tt.expected).Times(1)
 			case *gocache.MockGocacheLayerRepo:
-				v.EXPECT().WriteKeyValAsJSONTTL(tt.key, tt.value, tt.ttl).Return(tt.expected).Times(1)
+				v.EXPECT().WriteKeyValTTL(tt.key, string(jsonBytes), tt.ttl).Return(tt.expected).Times(1)
 			case *buntdb.MockBuntDBLayerRepo:
-				v.EXPECT().WriteKeyValAsJSONTTL(tt.key, tt.value, tt.ttl).Return(tt.expected).Times(1)
+				v.EXPECT().WriteKeyValTTL(tt.key, string(jsonBytes), tt.ttl).Return(tt.expected).Times(1)
 			}
 
 			cache, err := New(OptCache(tt.mock.(CacheRepo)))

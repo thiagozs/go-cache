@@ -2,13 +2,11 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	redis "github.com/redis/go-redis/v9"
-	"github.com/rs/zerolog"
+	"github.com/thiagozs/go-cache/internal/logging"
 	"github.com/thiagozs/go-cache/kind"
 )
 
@@ -22,36 +20,24 @@ func NewRedis(opts ...Options) (*RedisLayer, error) {
 		return &RedisLayer{}, err
 	}
 
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log := zerolog.New(os.Stderr).With().Timestamp().Logger()
+	log := logging.New(params.GetLogDebug(), params.GetLogDisable())
 
-	if params.GetLogDebug() {
-		log.Info().Bool("debug", true).Msg("log debug")
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	if params.GetRedis() == nil {
+		redisOpts := &redis.Options{
+			Addr:     fmt.Sprintf("%s:%d", params.GetHost(), params.GetPort()),
+			Password: params.GetPassword(),
+			DB:       params.GetDatabase(),
+		}
+		params.SetRedis(redis.NewClient(redisOpts))
 	}
 
-	if params.GetLogDisable() {
-		zerolog.SetGlobalLevel(zerolog.Disabled)
-	}
-
-	redisOpts := &redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", params.GetHost(), params.GetPort()),
-		Password: params.GetPassword(),
-		DB:       params.GetDatabase(),
-	}
-
-	rdb := redis.NewClient(redisOpts)
 	ctx := context.Background()
-
-	_, err = rdb.Ping(ctx).Result()
-	if err != nil {
+	if _, err = params.GetRedis().Ping(ctx).Result(); err != nil {
 		log.Error().Err(err).Msg("error ping")
 		return nil, err
 	}
 
 	params.SetLogger(log)
-	params.SetRedis(rdb)
 
 	return &RedisLayer{params: params}, nil
 }
@@ -104,30 +90,6 @@ func (r *RedisLayer) WriteKeyValTTL(key string, val string, insec int) error {
 	}
 	r.params.log.Debug().Int("ttl_seconds", r.params.GetTTL()).Msg("WriteKeyValTTL")
 	return r.params.GetRedis().Set(context.Background(), key, val, time.Duration(insec)*time.Second).Err()
-}
-
-func (r *RedisLayer) WriteKeyValAsJSON(key string, val any) error {
-	valueAsJSON, err := json.Marshal(val)
-	if err != nil {
-		r.params.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSON")
-		return err
-	}
-	return r.WriteKeyVal(key, string(valueAsJSON))
-}
-
-func (r *RedisLayer) WriteKeyValAsJSONTTL(key string, val any, insec int) error {
-	if insec == 0 {
-		return fmt.Errorf("ttl_seconds is zero")
-	}
-	r.params.log.Debug().Int("ttl_seconds", r.params.GetTTL()).Msg("WriteKeyValAsJSONTTL")
-
-	valueAsJSON, err := json.Marshal(val)
-	if err != nil {
-		r.params.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSONTTL")
-		return err
-	}
-
-	return r.WriteKeyValTTL(key, string(valueAsJSON), insec)
 }
 
 func (r *RedisLayer) GetDriver() kind.Driver {

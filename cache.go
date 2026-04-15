@@ -1,10 +1,13 @@
 package cache
 
 import (
-	"github.com/thiagozs/go-cache/buntdb"
-	"github.com/thiagozs/go-cache/gocache"
+	"encoding/json"
+	"fmt"
+
+	"github.com/thiagozs/go-cache/internal/buntdb"
+	"github.com/thiagozs/go-cache/internal/gocache"
+	"github.com/thiagozs/go-cache/internal/redis"
 	"github.com/thiagozs/go-cache/kind"
-	"github.com/thiagozs/go-cache/redis"
 )
 
 type Cache struct {
@@ -39,6 +42,8 @@ func New(opts ...Options) (*Cache, error) {
 		opts := []redis.Options{
 			redis.OptHost(params.GetHost()),
 			redis.OptPort(params.GetPort()),
+			redis.OptPassword(params.GetPassword()),
+			redis.OptUser(params.GetUser()),
 			redis.OptTTL(params.GetTTL()),
 			redis.OptLogDebug(params.GetLogDebug()),
 			redis.OptLogDisable(params.GetLogDisable()),
@@ -54,6 +59,8 @@ func New(opts ...Options) (*Cache, error) {
 			gocache.OptDriver(params.GetDriver()),
 		}
 		db, err = gocache.NewMemory(opts...)
+	default:
+		return nil, fmt.Errorf("unsupported cache driver: %v", params.GetDriver())
 	}
 
 	if err != nil {
@@ -76,11 +83,19 @@ func (d *Cache) DeleteKey(key string) (string, error) {
 }
 
 func (d *Cache) WriteKeyValAsJSON(key string, val interface{}) error {
-	return d.db.WriteKeyValAsJSON(key, val)
+	valueAsJSON, err := json.Marshal(val)
+	if err != nil {
+		return err
+	}
+	return d.db.WriteKeyVal(key, string(valueAsJSON))
 }
 
 func (d *Cache) WriteKeyValAsJSONTTL(key string, val interface{}, ttlSeconds int) error {
-	return d.db.WriteKeyValAsJSONTTL(key, val, ttlSeconds)
+	valueAsJSON, err := json.Marshal(val)
+	if err != nil {
+		return err
+	}
+	return d.db.WriteKeyValTTL(key, string(valueAsJSON), ttlSeconds)
 }
 
 func (d *Cache) GetVal(key string) (string, error) {

@@ -14,7 +14,7 @@ func main() {
 		cache.OptLogDisable(false),
 		cache.OptHost("localhost"),
 		cache.OptPort(6379),
-		cache.OptDriverKind(kind.REDIS),
+		cache.OptDriver(kind.REDIS),
 	}
 
 	cache, err := cache.New(opts...)

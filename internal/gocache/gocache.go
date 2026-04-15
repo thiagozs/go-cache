@@ -1,19 +1,18 @@
 package gocache
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
-	"reflect"
+	"sync"
 	"time"
 
 	"github.com/patrickmn/go-cache"
-	"github.com/rs/zerolog"
+	"github.com/thiagozs/go-cache/internal/logging"
 	"github.com/thiagozs/go-cache/kind"
 	"github.com/thiagozs/go-xutils"
 )
 
 type GocacheLayer struct {
+	mu     sync.Mutex
 	params *MemoryParams
 	utils  *xutils.XUtils
 }
@@ -24,18 +23,7 @@ func NewMemory(opts ...Options) (*GocacheLayer, error) {
 		return nil, err
 	}
 
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log := zerolog.New(os.Stderr).With().Timestamp().Logger()
-
-	if params.GetLogDebug() {
-		log.Info().Bool("debug", true).Msg("log debug")
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	}
-
-	if params.GetLogDisable() {
-		zerolog.SetGlobalLevel(zerolog.Disabled)
-	}
+	log := logging.New(params.GetLogDebug(), params.GetLogDisable())
 
 	c := cache.New(params.GetTExpiration(), params.GetTCleanUpInt())
 
@@ -55,7 +43,10 @@ func (m *GocacheLayer) GetVal(key string) (string, error) {
 		m.params.log.Debug().Str("method", "cache.Get").Err(err).Msg("GetVal")
 		return "", err
 	}
-	str := reflect.ValueOf(iface).String()
+	str, ok := iface.(string)
+	if !ok {
+		return "", fmt.Errorf("value for key %q is not a string", key)
+	}
 	m.params.log.Debug().Str("method", "get").
 		Str("key", key).
 		Str("value", str).
@@ -87,8 +78,6 @@ func (m *GocacheLayer) WriteKeyValTTL(key string, val string, insec int) error {
 
 	ttlc := time.Duration(insec) * time.Second
 
-	m.params.log.Debug().Int("ttl_seconds", int(ttlc)).Msg("WriteKeyValTTL")
-
 	m.params.log.Debug().Str("method", "write").
 		Str("key", key).
 		Str("value", val).
@@ -98,83 +87,68 @@ func (m *GocacheLayer) WriteKeyValTTL(key string, val string, insec int) error {
 	return nil
 }
 
-func (m *GocacheLayer) WriteKeyValAsJSON(key string, val any) error {
-	valueAsJSON, err := json.Marshal(val)
-	if err != nil {
-		m.params.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSON")
-		return err
-	}
-	return m.WriteKeyVal(key, string(valueAsJSON))
-}
-
-func (m *GocacheLayer) WriteKeyValAsJSONTTL(key string, val any, insec int) error {
-	if insec == 0 {
-		return fmt.Errorf("ttl_seconds is zero")
-	}
-
-	valueAsJSON, err := json.Marshal(val)
-	if err != nil {
-		m.params.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSONTTL")
-		return err
-	}
-
-	return m.WriteKeyValTTL(key, string(valueAsJSON), insec)
-}
-
 func (m *GocacheLayer) GetDriver() kind.Driver {
 	return m.params.GetDriver()
 }
 
 func (m *GocacheLayer) Incr(key string) (int64, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	val, err := m.GetVal(key)
 	if err != nil {
-		err := fmt.Errorf("not found")
-		m.params.log.Debug().Str("method", "cache.Get").Err(err).Msg("Decr")
+		m.params.log.Debug().Str("method", "cache.Get").Err(err).Msg("Incr")
 		return 0, err
 	}
 
-	v, _ := m.utils.Convs().ToInt64(val)
+	v, err := m.utils.Convs().ToInt64(val)
+	if err != nil {
+		m.params.log.Debug().Err(err).Msg("Incr")
+		return 0, err
+	}
 
-	m.params.log.Debug().Str("method", "get").
+	v++
+
+	if err := m.WriteKeyVal(key, fmt.Sprintf("%d", v)); err != nil {
+		m.params.log.Debug().Str("method", "WriteKeyVal").Err(err).Msg("Incr")
+		return 0, err
+	}
+
+	m.params.log.Debug().Str("method", "incr").
 		Str("key", key).
 		Int64("value", v).
 		Msg("Incr")
-
-	v = v + 1
-
-	if err := m.WriteKeyVal(key,
-		fmt.Sprintf("%d", v)); err != nil {
-		m.params.log.Debug().Str("method", "WriteKeyVal").
-			Err(err).Msg("Incr")
-		return 0, err
-	}
 
 	return v, nil
 }
 
 func (m *GocacheLayer) Decr(key string) (int64, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	val, err := m.GetVal(key)
 	if err != nil {
-		err := fmt.Errorf("not found")
 		m.params.log.Debug().Str("method", "cache.Get").Err(err).Msg("Decr")
 		return 0, err
 	}
 
-	v, _ := m.utils.Convs().ToInt64(val)
+	v, err := m.utils.Convs().ToInt64(val)
+	if err != nil {
+		m.params.log.Debug().Err(err).Msg("Decr")
+		return 0, err
+	}
 
-	m.params.log.Debug().Str("method", "get").
+	v--
+
+	if err := m.WriteKeyVal(key, fmt.Sprintf("%d", v)); err != nil {
+		m.params.log.Debug().Str("method", "WriteKeyVal").Err(err).Msg("Decr")
+		return 0, err
+	}
+
+	m.params.log.Debug().Str("method", "decr").
 		Str("key", key).
 		Int64("value", v).
 		Msg("Decr")
-
-	v = v - 1
-
-	if err := m.WriteKeyVal(key,
-		fmt.Sprintf("%d", v)); err != nil {
-		m.params.log.Debug().Str("method", "WriteKeyVal").
-			Err(err).Msg("Decr")
-		return 0, err
-	}
 
 	return v, nil
 }

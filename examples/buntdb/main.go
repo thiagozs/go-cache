@@ -14,7 +14,7 @@ func main() {
 		cache.OptTTL(3000),
 		cache.OptLogDebug(false),
 		cache.OptLogDisable(false),
-		cache.OptDriverKind(kind.BUNTDB),
+		cache.OptDriver(kind.BUNTDB),
 	}
 
 	cache, err := cache.New(opts...)

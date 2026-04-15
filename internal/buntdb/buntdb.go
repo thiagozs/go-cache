@@ -1,13 +1,12 @@
 package buntdb
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"path"
+	"sync"
 	"time"
 
-	"github.com/rs/zerolog"
+	"github.com/thiagozs/go-cache/internal/logging"
 	kind "github.com/thiagozs/go-cache/kind"
 	"github.com/thiagozs/go-utils/files"
 	"github.com/thiagozs/go-xutils"
@@ -15,6 +14,7 @@ import (
 )
 
 type BuntDBLayer struct {
+	mu     sync.Mutex
 	params *BuntDBParams
 	utils  *xutils.XUtils
 }
@@ -25,18 +25,7 @@ func NewBuntDB(opts ...Options) (*BuntDBLayer, error) {
 		return nil, err
 	}
 
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log := zerolog.New(os.Stderr).With().Timestamp().Logger()
-
-	if params.GetLogDebug() {
-		log.Info().Bool("debug", true).Msg("log debug")
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	}
-
-	if params.GetLogDisable() {
-		zerolog.SetGlobalLevel(zerolog.Disabled)
-	}
+	log := logging.New(params.GetLogDebug(), params.GetLogDisable())
 
 	pathFile := fmt.Sprintf("%s/%s", params.GetFolder(), params.GetFile())
 
@@ -137,44 +126,19 @@ func (d *BuntDBLayer) WriteKeyValTTL(key string, val string, insec int) error {
 	return nil
 }
 
-func (d *BuntDBLayer) WriteKeyValAsJSON(key string, val any) error {
-	valueAsJSON, err := json.Marshal(val)
-	if err != nil {
-		d.params.log.Debug().Str("method", "write").Err(err).Msg("WriteKeyValAsJSON")
-		return err
-	}
-	return d.WriteKeyVal(key, string(valueAsJSON))
-}
-
-func (d *BuntDBLayer) WriteKeyValAsJSONTTL(key string, val any, insec int) error {
-	if insec == 0 {
-		return fmt.Errorf("ttl_seconds is zero")
-	}
-	d.params.log.Debug().Int("ttl_seconds", insec).Msg("WriteKeyValTTL")
-
-	valueAsJSON, err := json.Marshal(val)
-	if err != nil {
-		d.params.log.Debug().Str("method", "json.Marshal").Err(err).Msg("WriteKeyValAsJSONTTL")
-		return err
-	}
-	return d.WriteKeyValTTL(key, string(valueAsJSON), insec)
-}
-
 func (d *BuntDBLayer) GetDriver() kind.Driver {
 	return d.params.GetDriver()
 }
 
 func (d *BuntDBLayer) Incr(key string) (int64, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
 	val, err := d.GetVal(key)
 	if err != nil {
 		d.params.log.Debug().Err(err).Msg("Incr")
 		return 0, err
 	}
-
-	d.params.log.Debug().Str("method", "incr").
-		Str("key", key).
-		Str("value", val).
-		Msg("Incr")
 
 	value, err := d.utils.Convs().ToInt64(val)
 	if err != nil {
@@ -182,10 +146,9 @@ func (d *BuntDBLayer) Incr(key string) (int64, error) {
 		return 0, err
 	}
 
-	value = value + 1
+	value++
 
-	err = d.WriteKeyVal(key, fmt.Sprintf("%d", value))
-	if err != nil {
+	if err = d.WriteKeyVal(key, fmt.Sprintf("%d", value)); err != nil {
 		d.params.log.Debug().Err(err).Msg("Incr")
 		return 0, err
 	}
@@ -199,16 +162,14 @@ func (d *BuntDBLayer) Incr(key string) (int64, error) {
 }
 
 func (d *BuntDBLayer) Decr(key string) (int64, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
 	val, err := d.GetVal(key)
 	if err != nil {
 		d.params.log.Debug().Err(err).Msg("Decr")
 		return 0, err
 	}
-
-	d.params.log.Debug().Str("method", "decr").
-		Str("key", key).
-		Str("value", val).
-		Msg("Decr")
 
 	value, err := d.utils.Convs().ToInt64(val)
 	if err != nil {
@@ -216,10 +177,9 @@ func (d *BuntDBLayer) Decr(key string) (int64, error) {
 		return 0, err
 	}
 
-	value = value - 1
+	value--
 
-	err = d.WriteKeyVal(key, fmt.Sprintf("%d", value))
-	if err != nil {
+	if err = d.WriteKeyVal(key, fmt.Sprintf("%d", value)); err != nil {
 		d.params.log.Debug().Err(err).Msg("Decr")
 		return 0, err
 	}

@@ -20,11 +20,11 @@ interfaces: # Generate interfaces
 	# Generate interfaces
 	# -------------------
 	# BuntDBLayer interfaces...
-	@ifacemaker -f buntdb/buntdb.go -s BuntDBLayer -i BuntDBLayerRepo -p buntdb -o buntdb/repository.go
+	@ifacemaker -f internal/buntdb/buntdb.go -s BuntDBLayer -i BuntDBLayerRepo -p buntdb -o internal/buntdb/repository.go
 	# GocacheLayer interfaces...
-	@ifacemaker -f gocache/gocache.go -s GocacheLayer -i GocacheLayerRepo -p gocache -o gocache/repository.go
+	@ifacemaker -f internal/gocache/gocache.go -s GocacheLayer -i GocacheLayerRepo -p gocache -o internal/gocache/repository.go
 	# RedisLayer interfaces...
-	@ifacemaker -f redis/redis.go -s RedisLayer -i RedisLayerRepo -p redis -o redis/repository.go
+	@ifacemaker -f internal/redis/redis.go -s RedisLayer -i RedisLayerRepo -p redis -o internal/redis/repository.go
 	# Cache interfaces...
 	@ifacemaker -f cache.go -s Cache -i CacheRepo -p cache -o repository.go
 
@@ -32,10 +32,10 @@ mocks: # Generate mocks
 	# Generate mocks
 	# --------------
 	# BuntDBLayer mocks...
-	@mockgen -source=buntdb/repository.go -destination=buntdb/buntdb_mock.go -package=buntdb
+	@mockgen -source=internal/buntdb/repository.go -destination=internal/buntdb/buntdb_mock.go -package=buntdb
 	# MemoryLayer mocks...
-	@mockgen -source=gocache/repository.go -destination=gocache/gocache_mock.go -package=gocache
+	@mockgen -source=internal/gocache/repository.go -destination=internal/gocache/gocache_mock.go -package=gocache
 	# RedisLayer mocks...
-	@mockgen -source=redis/repository.go -destination=redis/redis_mock.go -package=redis
+	@mockgen -source=internal/redis/repository.go -destination=internal/redis/redis_mock.go -package=redis
 	# Cache mocks...
 	@mockgen -source=repository.go -destination=cache_mock.go -package=cache

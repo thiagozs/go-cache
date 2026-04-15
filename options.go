@@ -152,7 +152,7 @@ func OptCache(value CacheRepo) Options {
 	}
 }
 
-func OptDriverKind(value kind.Driver) Options {
+func OptDriver(value kind.Driver) Options {
 	return func(d *CacheParams) error {
 		d.driver = value
 		return nil

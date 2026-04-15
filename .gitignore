@@ -1,0 +1,28 @@
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test output
+*.test
+*.out
+coverage.out
+
+# Go workspace
+vendor/
+go.work
+go.work.sum
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp / cache
+tmp/
+*.db

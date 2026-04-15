@@ -57,5 +57,5 @@ func TestOptions(t *testing.T) {
 	assert.Equal(t, "user", redisOptsWithUser.Username)
 
 	redisOptsWithDB := opts.GetRedisOptionsWithDB()
-	assert.Equal(t, 0, redisOptsWithDB.DB)
+	assert.Equal(t, 1, redisOptsWithDB.DB)
 }

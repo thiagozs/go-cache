@@ -31,6 +31,7 @@ func TestRedisLayer(t *testing.T) {
 	mrdis := strings.Split(mr.Addr(), ":")
 	port, _ := strconv.Atoi(mrdis[1])
 
+	// Inject the pre-built client via OptRedis so no second connection is attempted.
 	redisLayer, err := NewRedis(OptRedis(client), OptPort(port), OptDriver(kind.REDIS))
 	assert.NoError(t, err)
 
@@ -59,18 +60,6 @@ func TestRedisLayer(t *testing.T) {
 
 	t.Run("WriteKeyValTTL", func(t *testing.T) {
 		err := redisLayer.WriteKeyValTTL("key", "value", 10)
-		assert.NoError(t, err)
-	})
-
-	t.Run("WriteKeyValAsJSON", func(t *testing.T) {
-		data := map[string]string{"name": "Alice", "age": "30"}
-		err := redisLayer.WriteKeyValAsJSON("key", data)
-		assert.NoError(t, err)
-	})
-
-	t.Run("WriteKeyValAsJSONTTL", func(t *testing.T) {
-		data := map[string]string{"name": "Bob", "age": "35"}
-		err := redisLayer.WriteKeyValAsJSONTTL("key", data, 10)
 		assert.NoError(t, err)
 	})
 

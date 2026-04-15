@@ -239,6 +239,6 @@ func (o *OptionsParams) GetRedisOptionsWithDB() *redis.Options {
 	return &redis.Options{
 		Addr:     o.GetHost(),
 		Password: o.GetPassword(),
-		DB:       0,
+		DB:       o.GetDatabase(),
 	}
 }

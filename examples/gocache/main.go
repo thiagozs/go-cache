@@ -15,7 +15,7 @@ func main() {
 		cache.OptLogDisable(false),
 		cache.OptTimeExpiration(time.Second * 60),
 		cache.OptTimeCleanUpInt(time.Second * 120),
-		cache.OptDriverKind(kind.GOCACHE),
+		cache.OptDriver(kind.GOCACHE),
 	}
 
 	cache, err := cache.New(opts...)

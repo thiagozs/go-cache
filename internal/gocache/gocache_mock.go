@@ -122,34 +122,6 @@ func (mr *MockGocacheLayerRepoMockRecorder) WriteKeyVal(key, val interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteKeyVal", reflect.TypeOf((*MockGocacheLayerRepo)(nil).WriteKeyVal), key, val)
 }
 
-// WriteKeyValAsJSON mocks base method.
-func (m *MockGocacheLayerRepo) WriteKeyValAsJSON(key string, val any) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WriteKeyValAsJSON", key, val)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// WriteKeyValAsJSON indicates an expected call of WriteKeyValAsJSON.
-func (mr *MockGocacheLayerRepoMockRecorder) WriteKeyValAsJSON(key, val interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteKeyValAsJSON", reflect.TypeOf((*MockGocacheLayerRepo)(nil).WriteKeyValAsJSON), key, val)
-}
-
-// WriteKeyValAsJSONTTL mocks base method.
-func (m *MockGocacheLayerRepo) WriteKeyValAsJSONTTL(key string, val any, insec int) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WriteKeyValAsJSONTTL", key, val, insec)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// WriteKeyValAsJSONTTL indicates an expected call of WriteKeyValAsJSONTTL.
-func (mr *MockGocacheLayerRepoMockRecorder) WriteKeyValAsJSONTTL(key, val, insec interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteKeyValAsJSONTTL", reflect.TypeOf((*MockGocacheLayerRepo)(nil).WriteKeyValAsJSONTTL), key, val, insec)
-}
-
 // WriteKeyValTTL mocks base method.
 func (m *MockGocacheLayerRepo) WriteKeyValTTL(key, val string, insec int) error {
 	m.ctrl.T.Helper()

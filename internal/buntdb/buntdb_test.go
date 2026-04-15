@@ -46,26 +46,6 @@ func TestBuntDBLayer(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("WriteKeyValAsJSON", func(t *testing.T) {
-		data := map[string]string{"name": "Alice", "age": "30"}
-		err := buntDB.WriteKeyValAsJSON("keyJSON", data)
-		assert.NoError(t, err)
-
-		val, err := buntDB.GetVal("keyJSON")
-		assert.NoError(t, err)
-		assert.JSONEq(t, `{"name":"Alice","age":"30"}`, val)
-	})
-
-	t.Run("WriteKeyValAsJSONTTL", func(t *testing.T) {
-		data := map[string]string{"name": "Bob", "age": "35"}
-		err := buntDB.WriteKeyValAsJSONTTL("keyJSONTTL", data, 1)
-		assert.NoError(t, err)
-
-		time.Sleep(2 * time.Second)
-		_, err = buntDB.GetVal("keyJSONTTL")
-		assert.Error(t, err)
-	})
-
 	t.Run("GetDriver", func(t *testing.T) {
 		driver := buntDB.GetDriver()
 		assert.Equal(t, kind.BUNTDB, driver)
